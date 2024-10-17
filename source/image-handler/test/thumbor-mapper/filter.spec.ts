@@ -620,7 +620,7 @@ describe("filter", () => {
 
   it("Should pass when quality and format filters are passed and file has extension", () => {
     // Arrange
-    const path = "/ruparupa-com/image/upload/Products/X092583_1.png/fit-in/80x80/filters:format(jpeg)/filters:quality(90)";
+    const path = "/ruparupa-com/image/upload/Products/X092583_1.png?modifier=fit-in/80x80/filters:format(jpeg)/filters:quality(90)";
     // const path = "/image_without_extension.png/filters:quality(50)/filters:format(jpeg)";
     console.log("File extension", path)
 

@@ -17,9 +17,6 @@ export class ThumborMapper {
    */
   public mapPathToEdits(path: string): ImageEdits {
     let fileFormat = this.getFileExtension(path) as ImageFormatTypes;
-  //   if (start > 0 && start < path.length) {
-  //      fileFormat =  path.substring(start, nextSlashIndex === -1 ? path.length : nextSlashIndex);
-  // }
     console.log("🚀 ~ file: thumbor-mapper.ts ~ line 20 ~ fileFormat", fileFormat)
     let modifiedPath = this.rearragePathUrl(path)
 
@@ -48,13 +45,13 @@ export class ThumborMapper {
   private getFileExtension = (path: string): string => {
     const start = path.lastIndexOf('.') + 1; // Position after the last dot
     const nextSlashIndex = path.indexOf('/', start); // First slash after the extension or end of path
+    const modifierIndex = path.indexOf('?modifier=', start); // Position of ?modifier=
+    // Determine where the extension ends, either at the next slash or before ?modifier=
+    const end = nextSlashIndex === -1 
+        ? (modifierIndex === -1 ? path.length : modifierIndex) 
+        : Math.min(nextSlashIndex, modifierIndex);
 
-    // Validate the start position to ensure it comes after a valid file extension
-    if (start > 0 && start < path.length) {
-        return path.substring(start, nextSlashIndex === -1 ? path.length : nextSlashIndex);
-    }
-
-    return 'jpg'; // Return null if no valid extension is found
+    return start > 0 ? path.substring(start, end) : 'jpg';
 };
 
   /**
@@ -411,7 +408,7 @@ export class ThumborMapper {
       const match = path.match(imageExtensionPattern);
     if (match && match.length > 2) {
     // Get the part of the path after the image file extension.
-    const additionalPath = match[2];  // E.g., "/fit-in/40x40/filters:format(webp)/filters:quality(90)"
+    const additionalPath = match[2];    // e.g., "/fit-in/40x40/filters:format(webp)" or "?modifier=fit-in/..."
     
     // Get the base path up to and including the image file extension.
     const basePath = path.substring(0, path.indexOf(additionalPath)); // E.g., "/ruparupa-com/image/upload/Products/X092583_1.jpg"
