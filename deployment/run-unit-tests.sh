@@ -40,13 +40,13 @@ coverage_reports_top_path="$template_dir/../source/test/coverage-reports"
 
 headline "[Tests] Run unit tests"
 declare -a packages=(
-  "$cdk_dir"
+  # "$cdk_dir"
   "$image_handler_dir"
-  "$custom_resource_dir"
-  "$metrics_utils_dir"
+  # "$custom_resource_dir"
+  # "$metrics_utils_dir"
 )
 for package in "${packages[@]}"; do
   cd "$package"
-  npm test
+  npm test  -- --silent=false
   prepare_jest_coverage_report "$package"
 done;

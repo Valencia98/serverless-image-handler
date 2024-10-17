@@ -16,25 +16,46 @@ export class ThumborMapper {
    * @returns Image edits based on the request path.
    */
   public mapPathToEdits(path: string): ImageEdits {
-    const fileFormat = path.substring(path.lastIndexOf(".") + 1) as ImageFormatTypes;
+    let fileFormat = this.getFileExtension(path) as ImageFormatTypes;
+  //   if (start > 0 && start < path.length) {
+  //      fileFormat =  path.substring(start, nextSlashIndex === -1 ? path.length : nextSlashIndex);
+  // }
+    console.log("🚀 ~ file: thumbor-mapper.ts ~ line 20 ~ fileFormat", fileFormat)
+    let modifiedPath = this.rearragePathUrl(path)
 
-    let edits: ImageEdits = this.mergeEdits(this.mapCrop(path), this.mapResize(path), this.mapFitIn(path));
+    let edits: ImageEdits = this.mergeEdits(this.mapCrop(modifiedPath), this.mapResize(modifiedPath), this.mapFitIn(modifiedPath) );
 
     // parse the image path. we have to sort here to make sure that when we have a file name without extension,
     // and `format` and `quality` filters are passed, then the `format` filter will go first to be able
     // to apply the `quality` filter to the target image format.
     const filters =
-      path
+    modifiedPath
         .match(/filters(:[^)]*\))+/g)
         ?.flatMap((filter) => filter.split(":").slice(1))
         ?.map((filter) => `filters:${filter}`)
         .sort() ?? [];
+        console.log("🚀 ~ file: thumbor-mapper.ts ~ line 38 ~ filters", filters)
     for (const filter of filters) {
       edits = this.mapFilter(filter, fileFormat, edits);
+      console.log("🚀 ~ file: thumbor-mapper.ts ~ line 40 ~ edits", edits)
+      console.log("🚀 ~ file: thumbor-mapper.ts ~ line 40 ~ fileFormat", fileFormat)
+      console.log("🚀 ~ file: thumbor-mapper.ts ~ line 40 ~ filter", filter)
     }
 
     return edits;
   }
+
+  private getFileExtension = (path: string): string => {
+    const start = path.lastIndexOf('.') + 1; // Position after the last dot
+    const nextSlashIndex = path.indexOf('/', start); // First slash after the extension or end of path
+
+    // Validate the start position to ensure it comes after a valid file extension
+    if (start > 0 && start < path.length) {
+        return path.substring(start, nextSlashIndex === -1 ? path.length : nextSlashIndex);
+    }
+
+    return 'jpg'; // Return null if no valid extension is found
+};
 
   /**
    * Enables users to migrate their current image request model to the SIH solution,
@@ -378,6 +399,31 @@ export class ThumborMapper {
     return currentEdits;
   }
 
+    /**
+   * Maps the image path to resize image edit.
+   * @param path An image path.
+   * @returns string
+   */
+  
+    private rearragePathUrl(path: string): string {
+      const imageExtensionPattern = /\.(jpg|jpeg|png|gif|webp)(\/.*)/i;
+      // Match the path against the pattern to see if any string comes after the image file extension.
+      const match = path.match(imageExtensionPattern);
+    if (match && match.length > 2) {
+    // Get the part of the path after the image file extension.
+    const additionalPath = match[2];  // E.g., "/fit-in/40x40/filters:format(webp)/filters:quality(90)"
+    
+    // Get the base path up to and including the image file extension.
+    const basePath = path.substring(0, path.indexOf(additionalPath)); // E.g., "/ruparupa-com/image/upload/Products/X092583_1.jpg"
+    
+    // Return the rearranged path with the additional path at the front and the base path at the end.
+    return `${additionalPath}${basePath}`;
+  }
+
+  // If there's no string after the image extension, return the original path.
+  return path;
+    }
+
   /**
    * Maps the image path to crop image edit.
    * @param path an image path.
@@ -482,3 +528,6 @@ export class ThumborMapper {
     return obj && typeof obj === "object" && !Array.isArray(obj);
   }
 }
+
+
+
